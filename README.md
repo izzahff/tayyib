@@ -44,7 +44,9 @@ Tayyib implements a **deliberately simplified two-ratio version** of AAOIFI Shar
 
 Every ticker is classified as **compliant**, **non-compliant**, or **unscreened**, never defaulted into a pass or fail when data is missing. Non-compliant and unscreened outcomes always carry one or more fixed reason strings, so any result is traceable back to the exact rule and data that produced it.
 
-Boundary rule: a value equal to the threshold passes (strict-exceed, not inclusive-fail). Full methodology, version history, and every decision's rationale is tracked as [OpenSpec](https://github.com/Fission-AI/OpenSpec) capabilities. See `openspec/specs/` for the current live specs, and `openspec/changes/archive/` for the full review history behind each one.
+Boundary rule: a value equal to the threshold passes (strict-exceed, not inclusive-fail).
+
+Full methodology, version history, and every decision's rationale is tracked as [OpenSpec](https://github.com/Fission-AI/OpenSpec) capabilities. See `openspec/specs/` for the current live specs, and `openspec/changes/archive/` for the full review history behind each one.
 
 ## Quick Start
 
