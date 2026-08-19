@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: tayyib-postgres
+    environment:
+      POSTGRES_USER: shariah_user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: tayyib
+    ports:
+      - "5433:5432"
+    volumes:
+      - tayyib_pgdata:/var/lib/postgresql/data
+
+volumes:
+  tayyib_pgdata:

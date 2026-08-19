@@ -108,7 +108,7 @@ uv sync
 
 cp .env.example .env
 
-\# Add your FMP API key
+\\# Add your FMP API key
 
 uv run pytest
 

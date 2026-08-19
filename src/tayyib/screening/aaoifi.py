@@ -13,6 +13,7 @@ INSUFFICIENT_NON_PERMISSIBLE_INCOME_DATA = (
     "insufficient data for non-permissible income calculation"
 )
 REVENUE_ZERO = "revenue is zero, cannot compute non-permissible income ratio"
+FINANCIAL_DATA_FETCH_FAILED = "financial data fetch failed"
 
 Classification = Literal["compliant", "non-compliant", "unscreened"]
 
