@@ -8,7 +8,7 @@ The name comes from the Quranic concept of *tayyib*, that which is pure and good
 
 ## Status
 
-Actively in development, solo build, 4-week timeline. Two of six planned capabilities are built, tested, and archived. This is not yet a complete system, see [what's built](#whats-built-so-far) below for exactly what works today versus what's still planned.
+Actively in development, solo build, 4-week timeline. Four of six planned capabilities are built, tested, and archived: AAOIFI screening, screening result persistence, and the pipeline orchestration that wires them together end-to-end. This is not yet a complete system, see [what's built](#whats-built-so-far) below for exactly what works today versus what's still planned.
 
 ## Features (target)
 
@@ -26,7 +26,7 @@ Actively in development, solo build, 4-week timeline. Two of six planned capabil
 |---|---|---|
 | AAOIFI compliance screening | ✅ Built, tested, 100% coverage | Fetches financial data from FMP, computes two ratios, classifies a ticker as compliant, non-compliant, or unscreened with a fixed reason string |
 | Screening result persistence | ✅ Built, tested | Stores every screening decision (including failures and unscreened tickers) in PostgreSQL, with generic pipeline-run lifecycle tracking reusable across future steps |
-| Pipeline orchestration (screen → persist wiring) | ⬜ Not yet built | Connects screening and persistence into one runnable pipeline with per-ticker failure isolation |
+| Pipeline orchestration (screen → persist wiring) | ✅ Built, tested | Connects screening and persistence into one runnable pipeline, with per-ticker fetch-failure isolation (REQ 1.9) and pipeline-wide failure handling (REQ 3.4/4.3) |
 | Momentum factor ranking | ⬜ Not yet built | Ranks compliant tickers, generates an equal-weight target list |
 | Telegram alerting | ⬜ Not yet built | Sends weekly alerts on new entries, exits, and pipeline failures |
 | Dashboard | ⬜ Not yet built | Web view of compliance status, portfolio value, and audit history |
