@@ -4,11 +4,17 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, date, datetime
 
-from sqlmodel import Session
+from sqlmodel import Session, select
 
+from tayyib.ranking import MomentumScore, TargetEntry
 from tayyib.screening.aaoifi import AaoifiScreeningResult
 from tayyib.storage.engine import get_session
-from tayyib.storage.models import PipelineRun, ScreeningResult
+from tayyib.storage.models import (
+    FactorScore,
+    PipelineRun,
+    ScreeningResult,
+    TargetPortfolio,
+)
 
 
 @contextmanager
@@ -70,6 +76,59 @@ def persist_screening_result(
             non_permissible_income_ratio=result.non_permissible_income_ratio,
             classification=result.classification,
             reasons=list(result.reasons),
+        )
+        session.add(row)
+        session.commit()
+        session.refresh(row)
+        return row
+
+
+def latest_compliant_tickers(session: Session | None = None) -> list[str]:
+    with _resolve_session(session) as session:
+        run = session.exec(
+            select(PipelineRun)
+            .where(PipelineRun.step_name == "screening", PipelineRun.status == "completed")
+            .order_by(PipelineRun.id.desc())
+        ).first()
+        if run is None:
+            raise LookupError("no completed screening run found")
+        rows = session.exec(
+            select(ScreeningResult).where(
+                ScreeningResult.pipeline_run_id == run.id,
+                ScreeningResult.classification == "compliant",
+            )
+        ).all()
+        return sorted(row.ticker for row in rows)
+
+
+def persist_factor_score(
+    run_id: int, score_date: date, item: MomentumScore, session: Session | None = None
+) -> FactorScore:
+    with _resolve_session(session) as session:
+        row = FactorScore(
+            pipeline_run_id=run_id,
+            ticker=item.ticker,
+            score_date=score_date,
+            score=item.score,
+            reason=item.reason,
+        )
+        session.add(row)
+        session.commit()
+        session.refresh(row)
+        return row
+
+
+def persist_target(
+    run_id: int, target_date: date, entry: TargetEntry, session: Session | None = None
+) -> TargetPortfolio:
+    with _resolve_session(session) as session:
+        row = TargetPortfolio(
+            pipeline_run_id=run_id,
+            target_date=target_date,
+            ticker=entry.ticker,
+            rank=entry.rank,
+            score=entry.score,
+            weight=entry.weight,
         )
         session.add(row)
         session.commit()

@@ -8,7 +8,7 @@ The name comes from the Quranic concept of *tayyib*, that which is pure and good
 
 ## Status
 
-Actively in development, solo build, 4-week timeline. Five of the planned capabilities are built, tested, and archived. They cover AAOIFI screening, screening result persistence, pipeline orchestration, and ticker universe resolution, and Telegram failure alerts. This is not yet a complete system, see [what's built](#whats-built-so-far) below for exactly what works today versus what's still planned.
+Actively in development, solo build, 4-week timeline. Six of the planned capabilities are built, tested, and archived. They cover AAOIFI screening, screening result persistence, pipeline orchestration, and ticker universe resolution, Telegram failure alerts, and momentum ranking. This is not yet a complete system, see [what's built](#whats-built-so-far) below for exactly what works today versus what's still planned.
 
 ## Features (target)
 
@@ -29,7 +29,7 @@ Actively in development, solo build, 4-week timeline. Five of the planned capabi
 | Pipeline orchestration (screen → persist wiring) | ✅ Built, tested | Connects screening and persistence into one runnable pipeline, with per-ticker fetch-failure isolation (REQ 1.9) and pipeline-wide failure handling (REQ 3.4/4.3) |
 | Ticker universe resolution | ✅ Built, tested, 100% coverage | Loads and validates the S&P 500 constituent list (503 tickers) from a checked-in file, and fails fast on a missing, empty, or malformed universe |
 | Telegram failure alerts | ✅ Built, tested | Sends a Telegram message when a pipeline run fails, and never lets a delivery problem change the run result |
-| Momentum factor ranking | ⬜ Not yet built | Ranks compliant tickers, generates an equal-weight target list |
+| Momentum factor ranking | ✅ Built, tested | Scores compliant tickers by 126 day adjusted-close return, selects the top 10 at equal weight, and records every excluded ticker with a fixed reason |
 | Weekly summary alerts | ⬜ Not yet built | Sends weekly alerts on new entries and exits once ranking exists |
 | Dashboard | ⬜ Not yet built | Web view of compliance status, portfolio value, and audit history |
 
@@ -51,7 +51,7 @@ flowchart LR
         UNI[universe.py<br/>resolve and validate]
         PIPE[pipeline.py<br/>run_screening_pipeline]
         SCR[screening/aaoifi.py<br/>two-ratio AAOIFI screen]
-        RANK[Momentum ranking]
+        RANK[ranking.py<br/>momentum score]
         TGT[Target list<br/>top N, equal weight]
         ALERT[Alert builder]
     end
@@ -85,7 +85,7 @@ flowchart LR
     NAV --> DASH
 
     classDef planned stroke-dasharray: 5 5,fill:#f6f6f6,color:#555
-    class RANK,TGT,ALERT,FS,TP,NAV,TG,DASH,FMPP planned
+    class ALERT,NAV,DASH planned
 ```
 
 ### How a run works
@@ -115,6 +115,8 @@ flowchart LR
 | `src/tayyib/universe.py` | Universe resolution and validation |
 | `src/tayyib/pipeline.py` | Run orchestration and failure handling |
 | `src/tayyib/screening/aaoifi.py` | Two-ratio screen and reason vocabulary |
+| `src/tayyib/ranking.py` | Momentum score and top N selection |
+| `src/tayyib/alerts.py` | Telegram delivery and failure alert text |
 | `src/tayyib/data/fmp.py` | FMP client and statement parsing |
 | `src/tayyib/storage/` | SQLModel tables, engine, and persistence functions |
 | `openspec/specs/` | Live specs for every built capability |

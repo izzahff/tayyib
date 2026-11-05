@@ -31,3 +31,27 @@ class ScreeningResult(SQLModel, table=True):
         default_factory=list,
         sa_type=ARRAY(String).with_variant(JSON(), "sqlite"),
     )
+
+
+class FactorScore(SQLModel, table=True):
+    __tablename__ = "factor_scores"
+
+    id: int | None = Field(default=None, primary_key=True)
+    pipeline_run_id: int = Field(foreign_key="pipeline_runs.id")
+    ticker: str
+    score_date: date
+    factor_name: str = "momentum"
+    score: float | None = None
+    reason: str | None = None
+
+
+class TargetPortfolio(SQLModel, table=True):
+    __tablename__ = "target_portfolio"
+
+    id: int | None = Field(default=None, primary_key=True)
+    pipeline_run_id: int = Field(foreign_key="pipeline_runs.id")
+    target_date: date
+    ticker: str
+    rank: int
+    score: float
+    weight: float

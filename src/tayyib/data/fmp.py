@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import date
 
 import httpx
 
@@ -61,3 +62,36 @@ def fetch_financial_statement_figures(ticker: str) -> FinancialStatementFigures:
     return parse_financial_statement_figures(
         fetch_balance_sheet(ticker), fetch_income_statement(ticker)
     )
+
+
+def fetch_adjusted_closes(ticker: str, from_date: date) -> list[tuple[date, float]]:
+    """Dividend-adjusted daily closes, oldest first."""
+    try:
+        response = httpx.get(
+            f"{settings.fmp_base_url}/historical-price-eod/dividend-adjusted",
+            params={
+                "symbol": ticker,
+                "from": from_date.isoformat(),
+                "apikey": settings.fmp_api_key,
+            },
+        )
+        response.raise_for_status()
+        rows = response.json()
+    except (httpx.HTTPError, ValueError) as exc:
+        raise FmpRequestError(f"FMP price request failed for {ticker}: {exc}") from exc
+
+    closes = parse_adjusted_closes(rows)
+    if not closes:
+        raise FmpRequestError(f"FMP returned no price data for {ticker}")
+    return closes
+
+
+def parse_adjusted_closes(rows: object) -> list[tuple[date, float]]:
+    if not isinstance(rows, list):
+        return []
+    closes = [
+        (date.fromisoformat(row["date"]), float(row["adjClose"]))
+        for row in rows
+        if row.get("adjClose") is not None and row.get("date")
+    ]
+    return sorted(closes, key=lambda item: item[0])
