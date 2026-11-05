@@ -2,6 +2,8 @@
 
 **Shariah-compliant stock screening, done properly.**
 
+**Live dashboard:** [tayyib-peach.vercel.app](https://tayyib-peach.vercel.app/)
+
 Tayyib is an alert-only stock screening system that applies AAOIFI Shariah compliance rules to a stock universe, ranks compliant stocks by momentum, and sends weekly Telegram alerts. It does not execute trades, you stay in control of every actual transaction.
 
 The name comes from the Quranic concept of *tayyib*, that which is pure and good, beyond merely permissible. It reflects the aspiration this project is building toward: not just a minimum compliance check, but a standard that holds itself to a higher bar as it grows. Most Shariah screeners stop at the floor. The name is a reminder that v1 is just the compliance layer, not the ceiling.
@@ -36,6 +38,8 @@ Actively in development, solo build, 4-week timeline. Eight of the planned capab
 Every capability above is developed spec-first using [OpenSpec](https://github.com/Fission-AI/OpenSpec): requirements are written, reviewed, and locked before any code is generated. Archived specs for completed capabilities live in `openspec/changes/archive/`, and live specs for what's currently built are in `openspec/specs/`.
 
 ## Dashboard
+
+Live at [tayyib-peach.vercel.app](https://tayyib-peach.vercel.app/). It fills with data after the first weekly run.
 
 A read-only Next.js app in `web/` shows the current list, every screening verdict, and the run history. Each stock shows both ratios as a bar with a tick at the limit, so you can see how close it sits to the line. The screenshots below use sample data, which the app labels with a banner.
 
