@@ -5,6 +5,7 @@ from pathlib import Path
 from tayyib.config import settings
 
 SP500_CONSTITUENTS_PATH = Path(__file__).parent / "data" / "sp500_constituents.csv"
+FREE_PLAN_CONSTITUENTS_PATH = Path(__file__).parent / "data" / "free_plan_constituents.csv"
 
 
 class UniverseResolutionError(Exception):
@@ -41,5 +42,8 @@ def resolve_universe(universe_source: str | None = None) -> list[str]:
 
     if universe_source == "sp500":
         return _read_ticker_file(SP500_CONSTITUENTS_PATH)
+
+    if universe_source == "free-plan":
+        return _read_ticker_file(FREE_PLAN_CONSTITUENTS_PATH)
 
     raise UniverseResolutionError(f"Unrecognized universe source: {universe_source!r}")

@@ -8,7 +8,7 @@ The name comes from the Quranic concept of *tayyib*, that which is pure and good
 
 ## Status
 
-Actively in development, solo build, 4-week timeline. Six of the planned capabilities are built, tested, and archived. They cover AAOIFI screening, screening result persistence, pipeline orchestration, and ticker universe resolution, Telegram failure alerts, and momentum ranking. This is not yet a complete system, see [what's built](#whats-built-so-far) below for exactly what works today versus what's still planned.
+Actively in development, solo build, 4-week timeline. Seven of the planned capabilities are built, tested, and archived. They cover AAOIFI screening, screening result persistence, pipeline orchestration, and ticker universe resolution, Telegram failure alerts, momentum ranking, and the weekly run. This is not yet a complete system, see [what's built](#whats-built-so-far) below for exactly what works today versus what's still planned.
 
 ## Features (target)
 
@@ -30,7 +30,7 @@ Actively in development, solo build, 4-week timeline. Six of the planned capabil
 | Ticker universe resolution | ✅ Built, tested, 100% coverage | Loads and validates the S&P 500 constituent list (503 tickers) from a checked-in file, and fails fast on a missing, empty, or malformed universe |
 | Telegram failure alerts | ✅ Built, tested | Sends a Telegram message when a pipeline run fails, and never lets a delivery problem change the run result |
 | Momentum factor ranking | ✅ Built, tested | Scores compliant tickers by 126 day adjusted-close return, selects the top 10 at equal weight, and records every excluded ticker with a fixed reason |
-| Weekly summary alerts | ⬜ Not yet built | Sends weekly alerts on new entries and exits once ranking exists |
+| Weekly run and summary alert | ✅ Built, tested | One command screens the universe, ranks compliant tickers, and sends a Telegram summary with entries and exits |
 | Dashboard | ⬜ Not yet built | Web view of compliance status, portfolio value, and audit history |
 
 Every capability above is developed spec-first using [OpenSpec](https://github.com/Fission-AI/OpenSpec): requirements are written, reviewed, and locked before any code is generated. Archived specs for completed capabilities live in `openspec/changes/archive/`, and live specs for what's currently built are in `openspec/specs/`.
@@ -116,7 +116,9 @@ flowchart LR
 | `src/tayyib/pipeline.py` | Run orchestration and failure handling |
 | `src/tayyib/screening/aaoifi.py` | Two-ratio screen and reason vocabulary |
 | `src/tayyib/ranking.py` | Momentum score and top N selection |
-| `src/tayyib/alerts.py` | Telegram delivery and failure alert text |
+| `src/tayyib/alerts.py` | Telegram delivery, failure alerts, and the weekly summary |
+| `src/tayyib/weekly.py` | Weekly job that runs screening, ranking, then the summary |
+| `scripts/discover_free_universe.py` | Finds which tickers the FMP free plan covers |
 | `src/tayyib/data/fmp.py` | FMP client and statement parsing |
 | `src/tayyib/storage/` | SQLModel tables, engine, and persistence functions |
 | `openspec/specs/` | Live specs for every built capability |

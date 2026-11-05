@@ -134,3 +134,34 @@ def persist_target(
         session.commit()
         session.refresh(row)
         return row
+
+
+def current_targets(run_id: int, session: Session | None = None) -> list[TargetPortfolio]:
+    with _resolve_session(session) as session:
+        return list(
+            session.exec(
+                select(TargetPortfolio)
+                .where(TargetPortfolio.pipeline_run_id == run_id)
+                .order_by(TargetPortfolio.rank)
+            ).all()
+        )
+
+
+def previous_target_tickers(run_id: int, session: Session | None = None) -> list[str] | None:
+    """Targets of the latest completed ranking run before run_id, or None if there is none."""
+    with _resolve_session(session) as session:
+        previous = session.exec(
+            select(PipelineRun)
+            .where(
+                PipelineRun.step_name == "ranking",
+                PipelineRun.status == "completed",
+                PipelineRun.id < run_id,
+            )
+            .order_by(PipelineRun.id.desc())
+        ).first()
+        if previous is None:
+            return None
+        rows = session.exec(
+            select(TargetPortfolio).where(TargetPortfolio.pipeline_run_id == previous.id)
+        ).all()
+        return sorted(row.ticker for row in rows)
