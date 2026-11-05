@@ -79,9 +79,9 @@ def main() -> None:
 
     save_state(state)
     remaining = len(universe) - len(state["covered"]) - len(state["not_covered"])
-    print(
-        f"Covered {len(state['covered'])}, not covered {len(state['not_covered'])}, left {remaining}"
-    )
+    covered = len(state["covered"])
+    not_covered = len(state["not_covered"])
+    print(f"Covered {covered}, not covered {not_covered}, left {remaining}")
     if remaining == 0:
         OUTPUT_FILE.write_text("\n".join(state["covered"]) + "\n")
         print(f"Wrote {OUTPUT_FILE.name} with {len(state['covered'])} tickers")
