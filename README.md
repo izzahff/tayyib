@@ -8,7 +8,7 @@ The name comes from the Quranic concept of *tayyib*, that which is pure and good
 
 ## Status
 
-Actively in development, solo build, 4-week timeline. Seven of the planned capabilities are built, tested, and archived. They cover AAOIFI screening, screening result persistence, pipeline orchestration, and ticker universe resolution, Telegram failure alerts, momentum ranking, and the weekly run. This is not yet a complete system, see [what's built](#whats-built-so-far) below for exactly what works today versus what's still planned.
+Actively in development, solo build, 4-week timeline. Eight of the planned capabilities are built, tested, and archived. They cover AAOIFI screening, screening result persistence, pipeline orchestration, and ticker universe resolution, Telegram failure alerts, momentum ranking, the weekly run, and the web dashboard. This is not yet a complete system, see [what's built](#whats-built-so-far) below for exactly what works today versus what's still planned.
 
 ## Features (target)
 
@@ -31,9 +31,15 @@ Actively in development, solo build, 4-week timeline. Seven of the planned capab
 | Telegram failure alerts | ✅ Built, tested | Sends a Telegram message when a pipeline run fails, and never lets a delivery problem change the run result |
 | Momentum factor ranking | ✅ Built, tested | Scores compliant tickers by 126 day adjusted-close return, selects the top 10 at equal weight, and records every excluded ticker with a fixed reason |
 | Weekly run and summary alert | ✅ Built, tested | One command screens the universe, ranks compliant tickers, and sends a Telegram summary with entries and exits |
-| Dashboard | ⬜ Not yet built | Web view of compliance status, portfolio value, and audit history |
+| Web dashboard | ✅ Built, tested | Next.js app that shows the ranked list, every screening verdict with its numbers, and the run history, reading from Supabase |
 
 Every capability above is developed spec-first using [OpenSpec](https://github.com/Fission-AI/OpenSpec): requirements are written, reviewed, and locked before any code is generated. Archived specs for completed capabilities live in `openspec/changes/archive/`, and live specs for what's currently built are in `openspec/specs/`.
+
+## Dashboard
+
+A read-only Next.js app in `web/` shows the current list, every screening verdict, and the run history. Each stock shows both ratios as a bar with a tick at the limit, so you can see how close it sits to the line. The screenshots below use sample data, which the app labels with a banner.
+
+![Screening page with sample data](docs/screenshots/screening-sample.png)
 
 ## Architecture
 
@@ -118,6 +124,8 @@ flowchart LR
 | `src/tayyib/ranking.py` | Momentum score and top N selection |
 | `src/tayyib/alerts.py` | Telegram delivery, failure alerts, and the weekly summary |
 | `src/tayyib/weekly.py` | Weekly job that runs screening, ranking, then the summary |
+| `web/` | Next.js dashboard, server-side reads from Postgres |
+| `.github/workflows/` | CI on every push and the weekly scheduled run |
 | `scripts/discover_free_universe.py` | Finds which tickers the FMP free plan covers |
 | `src/tayyib/data/fmp.py` | FMP client and statement parsing |
 | `src/tayyib/storage/` | SQLModel tables, engine, and persistence functions |
@@ -150,7 +158,16 @@ cp .env.example .env
 uv run pytest
 ```
 
-Start PostgreSQL with `docker compose up -d`. Telegram bot configuration is part of upcoming work, see [Status](#status) above.
+Start PostgreSQL with `docker compose up -d`, or point `DATABASE_URL` at Supabase. Fill in the Telegram values in `.env` to get alerts.
+
+Run the whole job once with `uv run python -m tayyib.weekly`.
+
+Run the dashboard locally from the `web/` folder. Set `DATABASE_URL`, then run `npm install` and `npm run dev`. Set `DASHBOARD_DEMO=1` to preview it with labelled sample data.
+
+### Deploying
+
+- **Dashboard.** Import the repository in Vercel, set the root directory to `web`, and add `DATABASE_URL` as an environment variable.
+- **Weekly job.** Add these repository secrets in GitHub under Settings, Secrets and variables, Actions: `FMP_API_KEY`, `DATABASE_URL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`. The workflow runs every Monday and can also be started by hand.
 
 ## Disclaimer
 

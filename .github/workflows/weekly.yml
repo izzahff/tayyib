@@ -1,0 +1,22 @@
+name: Weekly run
+
+on:
+  schedule:
+    - cron: "0 1 * * 1" # Mondays 01:00 UTC, 09:00 in Malaysia
+  workflow_dispatch:
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+      - run: uv sync --frozen
+      - run: uv run python -m tayyib.weekly
+        env:
+          FMP_API_KEY: ${{ secrets.FMP_API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          UNIVERSE_SOURCE: free-plan
