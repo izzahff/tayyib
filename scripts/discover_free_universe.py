@@ -34,11 +34,14 @@ def classify_status(status_code: int, body: object) -> str:
 
 
 def probe(ticker: str) -> str:
-    response = httpx.get(
-        f"{settings.fmp_base_url}/balance-sheet-statement",
-        params={"symbol": ticker, "apikey": settings.fmp_api_key},
-        timeout=20,
-    )
+    try:
+        response = httpx.get(
+            f"{settings.fmp_base_url}/balance-sheet-statement",
+            params={"symbol": ticker, "apikey": settings.fmp_api_key},
+            timeout=20,
+        )
+    except httpx.HTTPError:
+        return "unknown"
     try:
         body = response.json()
     except ValueError:
@@ -66,8 +69,9 @@ def main() -> None:
     done = set(state["covered"]) | set(state["not_covered"])
     todo = [t for t in universe if t not in done][: args.max]
 
-    for ticker in todo:
+    for position, ticker in enumerate(todo, start=1):
         result = probe(ticker)
+        print(f"[{position}/{len(todo)}] {ticker} {result}", flush=True)
         if result == "limit_reached":
             print("Daily limit reached. Run again tomorrow.")
             break
