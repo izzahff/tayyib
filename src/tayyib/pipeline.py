@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 from sqlmodel import Session
 
+from tayyib import alerts
 from tayyib.data import fmp
 from tayyib.data.fmp import FmpRequestError
 from tayyib.screening.aaoifi import (
@@ -37,6 +38,8 @@ def run_screening_pipeline(tickers: list[str], session: Session | None = None) -
                 run.id, ticker, screening_date, result, session=session
             )
     except Exception as exc:
-        return persistence.fail_pipeline_run(run.id, reason=str(exc), session=session)
+        failed_run = persistence.fail_pipeline_run(run.id, reason=str(exc), session=session)
+        alerts.send_telegram_message(alerts.format_failure_alert(failed_run))
+        return failed_run
 
     return persistence.complete_pipeline_run(run.id, session=session)

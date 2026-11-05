@@ -96,9 +96,7 @@ def test_one_ticker_fetch_failure_does_not_abort_run(session, monkeypatch):
 # 6.3
 
 
-def test_fetch_failed_ticker_persisted_as_unscreened_with_fetch_failed_reason(
-    session, monkeypatch
-):
+def test_fetch_failed_ticker_persisted_as_unscreened_with_fetch_failed_reason(session, monkeypatch):
     monkeypatch.setattr(
         fmp_module,
         "fetch_financial_statement_figures",

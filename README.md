@@ -8,7 +8,7 @@ The name comes from the Quranic concept of *tayyib*, that which is pure and good
 
 ## Status
 
-Actively in development, solo build, 4-week timeline. Four of the planned capabilities are built, tested, and archived. They cover AAOIFI screening, screening result persistence, pipeline orchestration, and ticker universe resolution. This is not yet a complete system, see [what's built](#whats-built-so-far) below for exactly what works today versus what's still planned.
+Actively in development, solo build, 4-week timeline. Five of the planned capabilities are built, tested, and archived. They cover AAOIFI screening, screening result persistence, pipeline orchestration, and ticker universe resolution, and Telegram failure alerts. This is not yet a complete system, see [what's built](#whats-built-so-far) below for exactly what works today versus what's still planned.
 
 ## Features (target)
 
@@ -28,8 +28,9 @@ Actively in development, solo build, 4-week timeline. Four of the planned capabi
 | Screening result persistence | ✅ Built, tested | Stores every screening decision (including failures and unscreened tickers) in PostgreSQL, with generic pipeline-run lifecycle tracking reusable across future steps |
 | Pipeline orchestration (screen → persist wiring) | ✅ Built, tested | Connects screening and persistence into one runnable pipeline, with per-ticker fetch-failure isolation (REQ 1.9) and pipeline-wide failure handling (REQ 3.4/4.3) |
 | Ticker universe resolution | ✅ Built, tested, 100% coverage | Loads and validates the S&P 500 constituent list (503 tickers) from a checked-in file, and fails fast on a missing, empty, or malformed universe |
+| Telegram failure alerts | ✅ Built, tested | Sends a Telegram message when a pipeline run fails, and never lets a delivery problem change the run result |
 | Momentum factor ranking | ⬜ Not yet built | Ranks compliant tickers, generates an equal-weight target list |
-| Telegram alerting | ⬜ Not yet built | Sends weekly alerts on new entries, exits, and pipeline failures |
+| Weekly summary alerts | ⬜ Not yet built | Sends weekly alerts on new entries and exits once ranking exists |
 | Dashboard | ⬜ Not yet built | Web view of compliance status, portfolio value, and audit history |
 
 Every capability above is developed spec-first using [OpenSpec](https://github.com/Fission-AI/OpenSpec): requirements are written, reviewed, and locked before any code is generated. Archived specs for completed capabilities live in `openspec/changes/archive/`, and live specs for what's currently built are in `openspec/specs/`.
