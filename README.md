@@ -174,6 +174,7 @@ Run the dashboard locally from the `web/` folder. Set `DATABASE_URL`, then run `
 
 - **Dashboard.** Import the repository in Vercel, set the root directory to `web`, and add `DATABASE_URL` as an environment variable.
 - **Weekly job.** Add these repository secrets in GitHub under Settings, Secrets and variables, Actions: `FMP_API_KEY`, `DATABASE_URL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`. The workflow runs every Monday and can also be started by hand.
+- **Daily discovery.** A second workflow checks 90 more tickers against the FMP free plan each morning and commits the updated list, so the weekly universe grows without manual work. Once every ticker is checked, it makes no calls.
 
 ## Disclaimer
 
