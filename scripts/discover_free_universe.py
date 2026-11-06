@@ -2,8 +2,9 @@
 
 Run it once a day. It tests tickers that are not yet checked, up to --max calls,
 and saves progress in src/tayyib/data/free_plan_probe.json. It stops at once if
-FMP says the daily limit is reached. When every ticker is checked, it writes
-src/tayyib/data/free_plan_constituents.csv with the covered tickers.
+FMP says the daily limit is reached. After every run it writes
+src/tayyib/data/free_plan_constituents.csv with the tickers covered so far, so
+the weekly run can start before the whole S&P 500 is checked.
 """
 
 from __future__ import annotations
@@ -86,9 +87,9 @@ def main() -> None:
     covered = len(state["covered"])
     not_covered = len(state["not_covered"])
     print(f"Covered {covered}, not covered {not_covered}, left {remaining}")
-    if remaining == 0:
-        OUTPUT_FILE.write_text("\n".join(state["covered"]) + "\n")
-        print(f"Wrote {OUTPUT_FILE.name} with {len(state['covered'])} tickers")
+    if state["covered"]:
+        OUTPUT_FILE.write_text("\n".join(sorted(state["covered"])) + "\n")
+        print(f"Wrote {OUTPUT_FILE.name} with {covered} tickers")
 
 
 if __name__ == "__main__":
