@@ -34,7 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </p>
             <p className="footer-mark">
               &copy; 2026{" "}
-              <a href="https://github.com/izzahff" target="_blank" rel="noreferrer">
+              <a href="https://izzahfff.vercel.app/" target="_blank" rel="noreferrer">
                 izzahfff
               </a>
             </p>
