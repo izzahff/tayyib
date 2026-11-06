@@ -7,22 +7,26 @@ Determines whether a given stock ticker is Shariah-compliant under the AAOIFI tw
 ## Requirements
 
 ### Requirement: Debt Ratio Screening
-The system SHALL compute a ticker's debt ratio as total liabilities divided by total assets, using the FTSE/MSCI total-assets convention rather than AAOIFI's market-capitalization basis. The numerator SHALL be FMP's `totalLiabilities` field (all liabilities, including non-interest-bearing items such as accounts payable and deferred revenue), not FMP's `totalDebt` field (interest-bearing debt only). The system SHALL fail the ticker on this ratio when the computed value strictly exceeds the configured `debt_ratio_threshold`; a value equal to the threshold SHALL pass.
+The system SHALL compute a ticker's debt ratio as total debt divided by total assets, using the FTSE/MSCI total-assets convention rather than AAOIFI's market-capitalization basis. The numerator SHALL be FMP's `totalDebt` field (interest-bearing short-term and long-term debt), not FMP's `totalLiabilities` field, because total liabilities includes non-interest-bearing items such as accounts payable and deferred revenue that AAOIFI does not count as debt. The system SHALL fail the ticker on this ratio when the computed value strictly exceeds the configured `debt_ratio_threshold`; a value equal to the threshold SHALL pass.
 
 #### Scenario: Debt ratio within threshold
-- **WHEN** a ticker's total liabilities divided by total assets is less than or equal to `debt_ratio_threshold`
+- **WHEN** a ticker's total debt divided by total assets is less than or equal to `debt_ratio_threshold`
 - **THEN** the ticker passes the debt ratio test
 
 #### Scenario: Debt ratio exceeds threshold
-- **WHEN** a ticker's total liabilities divided by total assets is strictly greater than `debt_ratio_threshold`
+- **WHEN** a ticker's total debt divided by total assets is strictly greater than `debt_ratio_threshold`
 - **THEN** the ticker fails the debt ratio test
 
 #### Scenario: Debt ratio exactly at threshold
-- **WHEN** a ticker's total liabilities divided by total assets is exactly equal to `debt_ratio_threshold`
+- **WHEN** a ticker's total debt divided by total assets is exactly equal to `debt_ratio_threshold`
+- **THEN** the ticker passes the debt ratio test
+
+#### Scenario: Large non-debt liabilities do not count
+- **WHEN** a ticker has total liabilities above the threshold share of total assets but total debt at or below it
 - **THEN** the ticker passes the debt ratio test
 
 ### Requirement: Non-Permissible Income Ratio Screening
-The system SHALL compute a ticker's non-permissible income ratio as non-permissible income divided by total revenue, where non-permissible income is the sum of FMP's `interestIncome` and `totalOtherIncomeExpensesNet` income-statement fields, and total revenue is FMP's `revenue` field. This collapses AAOIFI Standard 21's ratio #2 (interest-bearing deposits and investments / market cap) and ratio #3 (non-permissible income / total revenue) into a single check, since a reliable data source for ratio #2 is not available from FMP's free tier. The system SHALL fail the ticker on this ratio when the computed value strictly exceeds the configured `non_permissible_income_threshold`; a value equal to the threshold SHALL pass.
+The system SHALL compute a ticker's non-permissible income ratio as non-permissible income divided by total revenue, where non-permissible income is the positive part of FMP's `interestIncome` plus the positive part of FMP's `totalOtherIncomeExpensesNet`, and total revenue is FMP's `revenue` field. A negative value in either field SHALL count as zero, so a net loss cannot offset interest income and the ratio is never negative. This collapses AAOIFI Standard 21's ratio #2 (interest-bearing deposits and investments / market cap) and ratio #3 (non-permissible income / total revenue) into a single check, since a reliable data source for ratio #2 is not available from FMP's free tier. The system SHALL fail the ticker on this ratio when the computed value strictly exceeds the configured `non_permissible_income_threshold`; a value equal to the threshold SHALL pass.
 
 #### Scenario: Non-permissible income ratio within threshold
 - **WHEN** a ticker's non-permissible income divided by total revenue is less than or equal to `non_permissible_income_threshold`
@@ -36,15 +40,23 @@ The system SHALL compute a ticker's non-permissible income ratio as non-permissi
 - **WHEN** a ticker's non-permissible income divided by total revenue is exactly equal to `non_permissible_income_threshold`
 - **THEN** the ticker passes the non-permissible income test
 
+#### Scenario: A non-operating loss does not hide interest income
+- **WHEN** `interestIncome` is positive and `totalOtherIncomeExpensesNet` is negative
+- **THEN** the system counts the interest income in full and counts the other figure as zero
+
+#### Scenario: Both income figures are negative
+- **WHEN** `interestIncome` and `totalOtherIncomeExpensesNet` are both negative
+- **THEN** the non-permissible income ratio is zero
+
 ### Requirement: Financial Data Retrieval and Missing-Data Handling
-The system SHALL retrieve, for a given ticker, the total assets, total liabilities, revenue, interest income, and other non-operating income figures needed to compute both ratios from the configured financial data provider (FMP). The system SHALL distinguish a field that is absent (`None`) from the provider's response from a field with a real value of `0`: an absent field SHALL cause the ticker to be marked "unscreened," while a `0` value SHALL be treated as valid data and used in the calculation normally, except for `revenue`. If `revenue` is absent (`None`) or explicitly `0`, the system SHALL mark the ticker "unscreened" with reason "revenue is zero, cannot compute non-permissible income ratio" in either case, to avoid a division by zero; this reason is distinct from the general "insufficient data for non-permissible income calculation" reason, which applies only when `revenue` itself is present and non-zero but `interestIncome` or `totalOtherIncomeExpensesNet` is absent. When both a balance-sheet-side reason and a non-permissible-income-side reason apply to the same ticker, the system SHALL report both reasons together, not just one.
+The system SHALL retrieve, for a given ticker, the total assets, total debt, revenue, interest income, and other non-operating income figures needed to compute both ratios from the configured financial data provider (FMP). The system SHALL distinguish a field that is absent (`None`) from the provider's response from a field with a real value of `0`: an absent field SHALL cause the ticker to be marked "unscreened," while a `0` value SHALL be treated as valid data and used in the calculation normally, except for `revenue`. If `revenue` is absent (`None`) or explicitly `0`, the system SHALL mark the ticker "unscreened" with reason "revenue is zero, cannot compute non-permissible income ratio" in either case, to avoid a division by zero; this reason is distinct from the general "insufficient data for non-permissible income calculation" reason, which applies only when `revenue` itself is present and non-zero but `interestIncome` or `totalOtherIncomeExpensesNet` is absent. When both a balance-sheet-side reason and a non-permissible-income-side reason apply to the same ticker, the system SHALL report both reasons together, not just one.
 
 #### Scenario: Required figures available and screened normally
-- **WHEN** the financial data provider returns non-`None` values for total assets, total liabilities, revenue, interest income, and other non-operating income for a ticker, and `revenue` is not `0`
+- **WHEN** the financial data provider returns non-`None` values for total assets, total debt, revenue, interest income, and other non-operating income for a ticker, and `revenue` is not `0`
 - **THEN** the system computes both ratios and produces a compliance classification for that ticker
 
 #### Scenario: A figure is legitimately zero
-- **WHEN** `interestIncome`, `totalOtherIncomeExpensesNet`, total assets, or total liabilities is present with a real value of `0` (not absent)
+- **WHEN** `interestIncome`, `totalOtherIncomeExpensesNet`, total assets, or total debt is present with a real value of `0` (not absent)
 - **THEN** the system treats it as valid data and uses it in the relevant ratio calculation
 
 #### Scenario: An income-statement figure other than revenue is absent from the provider response
@@ -52,7 +64,7 @@ The system SHALL retrieve, for a given ticker, the total assets, total liabiliti
 - **THEN** the system marks the ticker "unscreened" with reason "insufficient data for non-permissible income calculation"
 
 #### Scenario: A required balance-sheet figure is absent from the provider response
-- **WHEN** total assets or total liabilities is absent (`None`) from the data provider's response for a ticker
+- **WHEN** total assets or total debt is absent (`None`) from the data provider's response for a ticker
 - **THEN** the system marks the ticker "unscreened" with reason "insufficient data for debt ratio calculation"
 
 #### Scenario: Revenue is missing or zero
@@ -60,7 +72,7 @@ The system SHALL retrieve, for a given ticker, the total assets, total liabiliti
 - **THEN** the system marks the ticker "unscreened" with reason "revenue is zero, cannot compute non-permissible income ratio," regardless of whether `interestIncome` or `totalOtherIncomeExpensesNet` are present
 
 #### Scenario: Both balance-sheet-side and non-permissible-income-side data are missing
-- **WHEN** a required balance-sheet field (total assets or total liabilities) is absent for a ticker, together with either an absent `interestIncome`/`totalOtherIncomeExpensesNet` (while `revenue` is present and non-zero) or an absent/zero `revenue`
+- **WHEN** a required balance-sheet field (total assets or total debt) is absent for a ticker, together with either an absent `interestIncome`/`totalOtherIncomeExpensesNet` (while `revenue` is present and non-zero) or an absent/zero `revenue`
 - **THEN** the system marks the ticker "unscreened" and reports "insufficient data for debt ratio calculation" together with whichever applies of "insufficient data for non-permissible income calculation" or "revenue is zero, cannot compute non-permissible income ratio"
 
 ### Requirement: Overall Compliance Classification

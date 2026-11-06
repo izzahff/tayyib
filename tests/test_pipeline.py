@@ -10,7 +10,7 @@ from tayyib.storage.models import PipelineRun, ScreeningResult
 
 COMPLIANT_FIGURES = FinancialStatementFigures(
     total_assets=1000.0,
-    total_liabilities=200.0,
+    total_debt=200.0,
     revenue=1000.0,
     interest_income=10.0,
     other_non_operating_income=5.0,
@@ -18,7 +18,7 @@ COMPLIANT_FIGURES = FinancialStatementFigures(
 
 NON_COMPLIANT_FIGURES = FinancialStatementFigures(
     total_assets=1000.0,
-    total_liabilities=400.0,
+    total_debt=400.0,
     revenue=1000.0,
     interest_income=50.0,
     other_non_operating_income=30.0,
@@ -26,7 +26,7 @@ NON_COMPLIANT_FIGURES = FinancialStatementFigures(
 
 MISSING_FIELD_FIGURES = FinancialStatementFigures(
     total_assets=None,
-    total_liabilities=200.0,
+    total_debt=200.0,
     revenue=1000.0,
     interest_income=10.0,
     other_non_operating_income=5.0,

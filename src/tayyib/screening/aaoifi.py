@@ -63,9 +63,9 @@ def screen_aaoifi_compliance(
 
 
 def _compute_debt_ratio(figures: FinancialStatementFigures) -> tuple[float | None, str | None]:
-    if figures.total_assets is None or figures.total_liabilities is None:
+    if figures.total_assets is None or figures.total_debt is None:
         return None, INSUFFICIENT_DEBT_RATIO_DATA
-    return figures.total_liabilities / figures.total_assets, None
+    return figures.total_debt / figures.total_assets, None
 
 
 def _compute_non_permissible_income_ratio(
@@ -75,5 +75,8 @@ def _compute_non_permissible_income_ratio(
         return None, REVENUE_ZERO
     if figures.interest_income is None or figures.other_non_operating_income is None:
         return None, INSUFFICIENT_NON_PERMISSIBLE_INCOME_DATA
-    non_permissible_income = figures.interest_income + figures.other_non_operating_income
+    # A loss counts as zero, so it can never offset interest income.
+    non_permissible_income = max(figures.interest_income, 0.0) + max(
+        figures.other_non_operating_income, 0.0
+    )
     return non_permissible_income / figures.revenue, None

@@ -14,14 +14,14 @@ from tayyib.screening.aaoifi import (
 
 def make_figures(
     total_assets=1000.0,
-    total_liabilities=200.0,
+    total_debt=200.0,
     revenue=1000.0,
     interest_income=10.0,
     other_non_operating_income=5.0,
 ) -> FinancialStatementFigures:
     return FinancialStatementFigures(
         total_assets=total_assets,
-        total_liabilities=total_liabilities,
+        total_debt=total_debt,
         revenue=revenue,
         interest_income=interest_income,
         other_non_operating_income=other_non_operating_income,
@@ -32,7 +32,7 @@ def make_figures(
 
 
 def test_debt_ratio_below_threshold_passes():
-    figures = make_figures(total_assets=1000.0, total_liabilities=200.0)  # 20%
+    figures = make_figures(total_assets=1000.0, total_debt=200.0)  # 20%
     result = screen_aaoifi_compliance(
         figures, debt_ratio_threshold=0.30, non_permissible_income_threshold=1.0
     )
@@ -41,7 +41,7 @@ def test_debt_ratio_below_threshold_passes():
 
 
 def test_debt_ratio_above_threshold_fails():
-    figures = make_figures(total_assets=1000.0, total_liabilities=400.0)  # 40%
+    figures = make_figures(total_assets=1000.0, total_debt=400.0)  # 40%
     result = screen_aaoifi_compliance(
         figures, debt_ratio_threshold=0.30, non_permissible_income_threshold=1.0
     )
@@ -50,7 +50,7 @@ def test_debt_ratio_above_threshold_fails():
 
 
 def test_debt_ratio_equal_to_threshold_passes():
-    figures = make_figures(total_assets=1000.0, total_liabilities=300.0)  # 30%
+    figures = make_figures(total_assets=1000.0, total_debt=300.0)  # 30%
     result = screen_aaoifi_compliance(
         figures, debt_ratio_threshold=0.30, non_permissible_income_threshold=1.0
     )
@@ -92,7 +92,7 @@ def test_npi_equal_to_threshold_passes():
 def test_passes_both_ratios_is_compliant():
     figures = make_figures(
         total_assets=1000.0,
-        total_liabilities=200.0,
+        total_debt=200.0,
         revenue=1000.0,
         interest_income=10.0,
         other_non_operating_income=5.0,
@@ -107,7 +107,7 @@ def test_passes_both_ratios_is_compliant():
 def test_fails_debt_ratio_only():
     figures = make_figures(
         total_assets=1000.0,
-        total_liabilities=400.0,
+        total_debt=400.0,
         revenue=1000.0,
         interest_income=10.0,
         other_non_operating_income=5.0,
@@ -122,7 +122,7 @@ def test_fails_debt_ratio_only():
 def test_fails_both_ratios():
     figures = make_figures(
         total_assets=1000.0,
-        total_liabilities=400.0,
+        total_debt=400.0,
         revenue=1000.0,
         interest_income=50.0,
         other_non_operating_income=30.0,
@@ -143,7 +143,7 @@ def test_custom_thresholds_from_settings(monkeypatch):
 
     figures = make_figures(
         total_assets=1000.0,
-        total_liabilities=400.0,
+        total_debt=400.0,
         revenue=1000.0,
         interest_income=50.0,
         other_non_operating_income=30.0,
@@ -185,8 +185,8 @@ def test_zero_interest_income_is_screened_normally_not_treated_as_missing():
     assert result.non_permissible_income_ratio == pytest.approx(0.0)
 
 
-def test_zero_total_liabilities_is_screened_normally_not_treated_as_missing():
-    figures = make_figures(total_liabilities=0.0)
+def test_zero_total_debt_is_screened_normally_not_treated_as_missing():
+    figures = make_figures(total_debt=0.0)
     result = screen_aaoifi_compliance(
         figures, debt_ratio_threshold=0.30, non_permissible_income_threshold=0.05
     )
@@ -238,9 +238,38 @@ def test_both_balance_sheet_and_income_statement_data_missing_reports_both_reaso
 
 
 def test_both_balance_sheet_and_revenue_missing_reports_both_reasons():
-    figures = make_figures(total_liabilities=None, revenue=None)
+    figures = make_figures(total_debt=None, revenue=None)
     result = screen_aaoifi_compliance(
         figures, debt_ratio_threshold=0.30, non_permissible_income_threshold=0.05
     )
     assert result.classification == "unscreened"
     assert result.reasons == (INSUFFICIENT_DEBT_RATIO_DATA, REVENUE_ZERO)
+
+
+def test_non_operating_loss_does_not_hide_interest_income():
+    # 60 interest income with a 50 loss used to net to 1%, now counts as 6%.
+    figures = make_figures(revenue=1000.0, interest_income=60.0, other_non_operating_income=-50.0)
+    result = screen_aaoifi_compliance(figures)
+    assert result.non_permissible_income_ratio == pytest.approx(0.06)
+    assert result.classification == "non-compliant"
+    assert result.reasons == (NON_PERMISSIBLE_INCOME_EXCEEDED,)
+
+
+def test_negative_interest_income_counts_as_zero():
+    figures = make_figures(revenue=1000.0, interest_income=-20.0, other_non_operating_income=30.0)
+    result = screen_aaoifi_compliance(figures)
+    assert result.non_permissible_income_ratio == pytest.approx(0.03)
+
+
+def test_both_income_figures_negative_gives_zero_ratio():
+    figures = make_figures(revenue=1000.0, interest_income=-5.0, other_non_operating_income=-80.0)
+    result = screen_aaoifi_compliance(figures)
+    assert result.non_permissible_income_ratio == 0.0
+    assert result.classification == "compliant"
+
+
+def test_debt_free_company_has_zero_debt_ratio():
+    figures = make_figures(total_assets=1000.0, total_debt=0.0)
+    result = screen_aaoifi_compliance(figures)
+    assert result.debt_ratio == 0.0
+    assert result.classification == "compliant"

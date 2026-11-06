@@ -142,12 +142,14 @@ Tayyib implements a **deliberately simplified two-ratio version** of AAOIFI Shar
 
 | Ratio | Formula | Threshold | Basis |
 |---|---|---|---|
-| Debt ratio | total liabilities / total assets | 30% | FTSE/MSCI convention, not AAOIFI's market-cap basis |
-| Non-permissible income | (interest income + other non-operating income) / total revenue | 5% | AAOIFI Standard 21, ratio expanded to absorb the deposits/investments ratio |
+| Debt ratio | interest-bearing debt (`totalDebt`) / total assets | 30% | FTSE/MSCI convention, not AAOIFI's market-cap basis |
+| Non-permissible income | (positive interest income + positive other non-operating income) / total revenue | 5% | AAOIFI Standard 21, ratio expanded to absorb the deposits/investments ratio |
 
 Every ticker is classified as **compliant**, **non-compliant**, or **unscreened**, never defaulted into a pass or fail when data is missing. Non-compliant and unscreened outcomes always carry one or more fixed reason strings, so any result is traceable back to the exact rule and data that produced it.
 
 Boundary rule: a value equal to the threshold passes (strict-exceed, not inclusive-fail).
+
+Two choices keep the screen honest. The debt ratio counts interest-bearing debt only, because payables and deferred revenue carry no interest. Each income figure counts only when positive, so a non-operating loss can never cancel out interest income. The first live run used total liabilities and a signed sum, and the [`fix-screening-ratios`](openspec/changes/archive/) change corrected both.
 
 Full methodology, version history, and every decision's rationale is tracked as [OpenSpec](https://github.com/Fission-AI/OpenSpec) capabilities. See `openspec/specs/` for the current live specs, and `openspec/changes/archive/` for the full review history behind each one.
 

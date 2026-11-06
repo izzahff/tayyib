@@ -23,16 +23,27 @@ export default function Methodology() {
           <tbody>
             <tr>
               <td>Debt to assets</td>
-              <td>total liabilities divided by total assets</td>
+              <td>interest-bearing debt divided by total assets</td>
               <td>{DEBT_LIMIT * 100}%</td>
             </tr>
             <tr>
               <td>Non-permissible income</td>
-              <td>(interest income plus other non-operating income) divided by revenue</td>
+              <td>(interest income plus other non-operating income, each counted only when positive) divided by revenue</td>
               <td>{INCOME_LIMIT * 100}%</td>
             </tr>
           </tbody>
         </table>
+
+        <h2>Why these two choices</h2>
+        <p>
+          The debt ratio counts only interest-bearing debt. Accounts payable and deferred revenue
+          are liabilities, but they carry no interest, so AAOIFI does not treat them as debt.
+        </p>
+        <p>
+          Each income figure counts only when it is positive. A loss elsewhere in a company's
+          non-operating results never cancels out interest it earned, so the ratio cannot go
+          negative.
+        </p>
 
         <h2>Three outcomes, never a guess</h2>
         <p>

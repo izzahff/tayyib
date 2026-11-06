@@ -16,7 +16,7 @@ class FmpRequestError(Exception):
 @dataclass(frozen=True)
 class FinancialStatementFigures:
     total_assets: float | None
-    total_liabilities: float | None
+    total_debt: float | None
     revenue: float | None
     interest_income: float | None
     other_non_operating_income: float | None
@@ -51,7 +51,7 @@ def parse_financial_statement_figures(
 ) -> FinancialStatementFigures:
     return FinancialStatementFigures(
         total_assets=balance_sheet.get("totalAssets"),
-        total_liabilities=balance_sheet.get("totalLiabilities"),
+        total_debt=balance_sheet.get("totalDebt"),
         revenue=income_statement.get("revenue"),
         interest_income=income_statement.get("interestIncome"),
         other_non_operating_income=income_statement.get("totalOtherIncomeExpensesNet"),
