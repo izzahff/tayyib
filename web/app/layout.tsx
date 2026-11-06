@@ -32,6 +32,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               advice, and it never places trades. Scores are simulated and past results do not
               predict future ones.
             </p>
+            <p className="footer-mark">
+              &copy; 2026{" "}
+              <a href="https://github.com/izzahff" target="_blank" rel="noreferrer">
+                izzahfff
+              </a>
+            </p>
           </footer>
         </div>
       </body>
